@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<style>
+		.container {
+			width: 900px;
+			height: 600px;
+			background-color: white;
+			position: relative;
+			top: 50px;
+			left: 50px;
+		}
+		.container div{
+			width: 50px;
+			height: 50px;
+			box-sizing: border-box;
+			border:5px solid white;
+			/*background-color: purple;*/
+			position: absolute;
+			color: white;
+			text-align: center;
+			line-height: 40px;
+			background-size: 100% 100%;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		
+	</div>
+</body>
+<script>
+/*
+	1. 预加载图片资源
+	2. 创建成对的div 并对不同的图片进行标记 error
+	   应当按照路径创建以确保不容易出现死操作;
+	2. 有一个二维数组保存div位置，消失并不移除div以不修改divDOM对象在数组中的位置
+	3. 点击某一个图标会触发以下操作
+			3.1 是否已经点击了上一个图标 即判断一个数组里是否有值，如果没有添加 如果有 判断是否可以消除
+			3.2 可以消除-- div.style.display = "none"; 并清除上述数组
+			document.querySelectordocument.querySelector
+			3.3 不可以消除，则数组中只留下刚才选择的图标节点，清除上一个图标节点
+
+ */
+	var container = document.querySelector(".container");
+	var rectArr = [];
+	//预加载图片资源
+	var imgArr = [];
+	var choseArr = [];
+
+	
+	var loadImgNum = 0;
+	for(var i = 1; i < 30;i++){
+		var img = new Image();
+		img.src = "img/"+i+".png";
+		imgArr.push(img);
+		img.onload = function(){
+			loadImgNum++;
+			if(loadImgNum == 29){
+				//预加载完毕
+				var imgArrNum = [];
+				//创建双数数组并打乱顺序
+
+				for(var i = 0; i<18;i++){
+					rectArr[i] = [];
+					for(var j = 0; j<12;j++){
+						var num = parseInt(Math.random()*29);
+						createRect(i,j,imgArr[num],num+1);
+
+					}
+				};
+				console.log(rectArr);
+			}
+		}
+	}
+
+	
+
+//216
+	
+	
+
+	function createRect(a,b,img,num){
+		var div = document.createElement("div");
+		div.style.left = a*50 + "px";
+		div.style.top = b*50 + "px";
+		div.x = a;
+		div.y = b;
+		div.position = [a,b];
+		var a = a;
+		if(a == 0 || b == 0 || a== 17 || b == 11){
+			// div.style.backgroundImage = "url("+img.src+")";
+			div.num = 0;
+		}else {
+			div.style.backgroundImage = "url("+img.src+")";
+			div.num = num;
+		}
+		container.appendChild(div);
+		rectArr[a][b] = div;
+		div.onclick = function(){
+			judgeScore.call(this);
+			console.log(this.num);
+		};
+	}
+
+	function judgeScore(){
+		// this.style.display = "none";
+		console.log(choseArr);
+		if(choseArr.length == 0){
+			choseArr.push(this);
+			this.style.borderColor = "red";
+		}else if(choseArr.length == 1){
+			// var canBePos = [];
+			var arr = judege(choseArr[0],this);
+			var clear = false;
+			console.log(choseArr[0].num);
+			for(var i = 0; i < arr.length;i++){
+				// console.log(arr[i].x == choseArr[0].x && arr[i].y == choseArr[0].y );
+				if(arr[i].x == this.x && arr[i].y == this.y && choseArr[0].num == this.num){
+					console.log(choseArr[0]);
+					console.log(arr[i]);
+					choseArr[0].style.backgroundImage = "";
+					choseArr[0].num = 0;
+					choseArr[0].style.borderColor = "white";
+					this.style.backgroundImage = "";
+					this.num = 0 ;
+
+					choseArr = [];
+					clear = true;
+					break;
+				}
+			}
+			if(clear == false){
+				choseArr[0].style.borderColor = "white";
+				choseArr = [];
+				this.style.borderColor = "red";
+				choseArr.push(this);
+			}
+		}
+	}
+
+
+
+
+
+	function judege(obj1,obj2){
+		var obj1x = obj1.x;
+		var obj2x = obj2.x;
+		var obj1y = obj1.y;
+		var obj2y = obj2.y;
+		// 判断水平方向 left;
+		var xdire = [];
+		var ydire = [];
+		var canBePos = [];
+		//right
+		for(var i = obj1x-1;i>=0;i--){
+			if(rectArr[i][obj1y].num != 0){
+				canBePos.push(rectArr[i][obj1y]);
+				break;
+			}else {
+				xdire.push(i);
+			}
+		}
+		//left
+		for(var i = obj1x+1;i<18;i++){
+			if(rectArr[i][obj1y].num != 0){
+				canBePos.push(rectArr[i][obj1y]);
+				break;
+			}else {
+				xdire.push(i);
+			}
+		}
+		//bottom
+		for(var i = obj1y+1;i<12;i++){
+			if(rectArr[obj1x][i].num != 0){
+				canBePos.push(rectArr[obj1x][i]);
+				break;
+			}else {
+				ydire.push(i);
+			}
+		}
+		//top
+		for(var i = obj1y - 1;i>=0;i--){
+			if(rectArr[obj1x][i].num != 0){
+				canBePos.push(rectArr[obj1x][i]);
+				break;
+			}else {
+				ydire.push(i);
+			}
+		}
+		console.log(xdire);
+		console.log(ydire);
+		console.log(canBePos);
+		//x方向
+		var ydire1 = [];
+		for(var i = 0; i <xdire.length ; i ++){
+
+					ydire1[i] = [];
+					for(var j = obj1y-1;j>=0;j--){
+						if(rectArr[xdire[i]][j].num != 0){
+							canBePos.push(rectArr[xdire[i]][j]);
+							break;
+						}else {
+							ydire1[i].push(j);
+						}
+					}
+					for(var j = obj1y+1;j<12;j++){
+						if(rectArr[xdire[i]][j].num != 0){
+							canBePos.push(rectArr[xdire[i]][j]);
+							break;
+						}else{
+							ydire1[i].push(j);
+						}
+					}
+		}
+		// y方向
+		var xdire1 = [];
+		for(var i = 0; i <ydire.length ; i++){
+			// (obj1x,ydire[i])
+			//right
+					xdire1[i] = [];
+					for(var j = obj1x-1;j>=0;j--){
+						if(rectArr[j][ydire[i]].num != 0){
+							canBePos.push(rectArr[j][ydire[i]]);
+							break;
+						}else {
+							xdire1[i].push(j);
+						}
+					}
+					//left
+					for(var j = obj1x+1;j<18;j++){
+						if(rectArr[j][ydire[i]].num != 0){
+							canBePos.push(rectArr[j][ydire[i]]);
+							break;
+						}else {
+							xdire1[i].push(j);
+						}
+					}
+		}
+		console.log(canBePos);
+		console.log(ydire1);
+		console.log(xdire1);
+		//last
+		//xdire+ydire1
+		for(var i = 0; i < ydire1.length;i++){
+			for(var j = 0;j< ydire1[i].length;j++){
+				// console.log();
+				// (xdire[i],ydire1[i][j]);
+				for(var k = xdire[i]+1;k<18;k++){
+					if(rectArr[k][ydire1[i][j]].num != 0){
+						canBePos.push(rectArr[k][ydire1[i][j]]);
+						break;
+					}
+				};
+				for(var k = xdire[i]-1;k>=0;k--){
+					if(rectArr[k][ydire1[i][j]].num != 0){
+						canBePos.push(rectArr[k][ydire1[i][j]]);
+						break;
+					}
+				}
+			}
+		}
+		// ydire+xdire1
+		for(var i = 0; i <xdire1.length;i++){
+			for(var j = 0; j <xdire1[i].length;j++){
+				for(var k = ydire[i]+1;k<12;k++){
+					if(rectArr[xdire1[i][j]][k].num != 0){
+						canBePos.push(rectArr[xdire1[i][j]][k]);
+						break;
+					}
+				};
+				for(var k = ydire[i]-1;k>=0;k--){
+					if(rectArr[xdire1[i][j]][k].num != 0){
+						canBePos.push(rectArr[xdire1[i][j]][k]);
+						break;
+					}
+				}
+			}
+		}
+		console.log(canBePos);
+		return canBePos;
+	}
+
+</script>
+</html>
